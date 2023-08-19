@@ -24,7 +24,8 @@ def yt_authenticate():
         return build("youtube", "v3", developerKey=YT_API_KEY)
     return build("youtube", "v3", credentials=creds)
 
-
+# searches Youtube based on query parameter
+# returns: list of dicts (one per search result), each dict contains title of video and video_id for one video
 def yt_search(youtube, query, max_results=10):
     search_response = (
         youtube.search()
@@ -42,37 +43,8 @@ def yt_search(youtube, query, max_results=10):
 
     return search_results
 
-
-def yt_get_caption_track(youtube, video_id):
-    captions_response = (
-        youtube.captions().list(part="snippet", videoId=video_id).execute()
-    )
-
-    captions = []
-
-    for item in captions_response.get("items", []):
-        caption_id = item["id"]
-        caption_language = item["snippet"]["language"]
-        captions.append({"id": caption_id, "language": caption_language})
-
-    return captions
-
-
-def yt_download_caption(youtube, track_id):
-    caption_response = (
-        youtube.captions()
-        .download(
-            id=track_id,
-            tfmt="srt",  # You can change the format to "ttml" for other formats
-        )
-        .execute()
-    )
-
-    caption_url = caption_response["downloadUrl"]
-    caption_text = requests.get(caption_url).text
-    return caption_text
-
-
+#  gets description of video provided by video_id
+#  returns: string (video description)
 def yt_get_video_description(youtube, video_id):
     video_response = youtube.videos().list(part="snippet", id=video_id).execute()
 
