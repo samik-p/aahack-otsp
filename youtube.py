@@ -24,6 +24,7 @@ def yt_authenticate():
         return build("youtube", "v3", developerKey=YT_API_KEY)
     return build("youtube", "v3", credentials=creds)
 
+
 # searches Youtube based on query parameter
 # returns: list of dicts (one per search result), each dict contains title of video and video_id for one video
 def yt_search(youtube, query, max_results=10):
@@ -43,6 +44,7 @@ def yt_search(youtube, query, max_results=10):
 
     return search_results
 
+
 #  gets description of video provided by video_id
 #  returns: string (video description)
 def yt_get_video_description(youtube, video_id):
@@ -53,3 +55,39 @@ def yt_get_video_description(youtube, video_id):
         return video_info.get("description", "Description not available")
     else:
         return "Video not found."
+
+
+# creates a playlist and returns its id
+def yt_create_playlist(youtube, title, description):
+    playlist_body = {
+        "snippet": {
+            "title": title,
+            "description": description,
+            "defaultLanguage": "en",
+        },
+        "status": {
+            "privacyStatus": "private"  # You can change this to "public" if desired
+        },
+    }
+
+    playlist_response = (
+        youtube.playlists().insert(part="snippet,status", body=playlist_body).execute()
+    )
+    return playlist_response["id"]
+
+
+# takes in playlist id and list of video ids and inserts the videos into the playlist
+def yt_add_videos_to_playlist(youtube, playlist_id, video_ids):
+    for video_id in video_ids:
+        request = youtube.playlistItems().insert(
+            part="snippet",
+            body={
+                "snippet": {
+                    "playlistId": playlist_id,
+                    "position": 0,
+                    "resourceId": {"kind": "youtube#video", "videoId": video_id},
+                }
+            },
+        )
+        request.execute()
+        print(f"Video {video_id} added to playlist.")
